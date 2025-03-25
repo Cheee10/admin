@@ -9,7 +9,8 @@ interface DFormProps {
 }
 
 export default function DForm({ onClose }: DFormProps) {
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -30,40 +31,68 @@ export default function DForm({ onClose }: DFormProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      setImage(file);
+      setPreview(URL.createObjectURL(file)); // ✅ Show preview
     }
   };
 
   const handleSubmit = async () => {
-    const payload = {
-      ...formData,
-      image,
-    };
-
-    console.log("Form Data:", payload);
-
+    const payload = new FormData();
+  
+    Object.entries(formData).forEach(([key, value]) => {
+      payload.append(key, value);
+    });
+  
+    if (image) {
+      payload.append("image", image);
+    }
+  
     try {
-      const response = await axios.post("http://192.168.1.28:5000/api/driver", payload, {
-        headers: { "Content-Type": "application/json" },
+      const response = await axios.post("http://192.168.1.59:5000/api/driver", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
+  
       if (response.status === 200) {
-        console.log("Data saved successfully!");
+        console.log("✅ Data saved successfully!");
+        
+        // Show success notification
+        alert("Driver added successfully!");
+  
+        // Reset form data
+        setFormData({
+          firstName: "",
+          middleName: "",
+          lastName: "",
+          age: "",
+          phoneNumber: "",
+          email: "",
+          address: "",
+          plateNumber: "",
+          color: "",
+          motorcycleModel: "",
+        });
+  
+        setImage(null);
+        setPreview(null);
+  
+        // Close the modal immediately
+        onClose();
       } else {
-        console.error("Failed to save data");
+        console.error("❌ Failed to save data");
       }
     } catch (error) {
-      console.error("Error submitting data:", error);
+      console.error("❌ Error submitting data:", error);
     }
   };
+    
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-6 items-center">
         <div className="flex flex-col items-center col-span-1">
           <div className="w-32 h-32 rounded-full border border-gray-300 overflow-hidden">
-            {image ? (
-              <img src={image} alt="Profile" className="w-full h-full object-cover" />
+            {preview ? (
+              <img src={preview} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 No Image
