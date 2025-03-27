@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Label from "../Label";
 import Input from "../input/InputField";
 import FileInput from "../input/FileInput";
-import axios from "axios";  // ✅ Using Axios
+import axios from "axios";
 
 interface DFormProps {
   onClose: () => void;
@@ -11,6 +11,8 @@ interface DFormProps {
 export default function DForm({ onClose }: DFormProps) {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false); // ✅ Success modal state
+
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -22,6 +24,7 @@ export default function DForm({ onClose }: DFormProps) {
     plateNumber: "",
     color: "",
     motorcycleModel: "",
+    active: "0", // ✅ Added active field
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,15 +35,15 @@ export default function DForm({ onClose }: DFormProps) {
     const file = event.target.files?.[0];
     if (file) {
       setImage(file);
-      setPreview(URL.createObjectURL(file)); // ✅ Show preview
+      setPreview(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async () => {
     const payload = new FormData();
-  
     Object.entries(formData).forEach(([key, value]) => {
-      payload.append(key, value);
+      // Convert active to a number
+      payload.append(key, key === "active" ? Number(value).toString() : value);
     });
   
     if (image) {
@@ -54,11 +57,8 @@ export default function DForm({ onClose }: DFormProps) {
   
       if (response.status === 200) {
         console.log("✅ Data saved successfully!");
+        setShowModal(true);
         
-        // Show success notification
-        alert("Driver added successfully!");
-  
-        // Reset form data
         setFormData({
           firstName: "",
           middleName: "",
@@ -70,13 +70,16 @@ export default function DForm({ onClose }: DFormProps) {
           plateNumber: "",
           color: "",
           motorcycleModel: "",
+          active: "0", // Ensure reset
         });
   
         setImage(null);
         setPreview(null);
   
-        // Close the modal immediately
-        onClose();
+        setTimeout(() => {
+          setShowModal(false);
+          onClose();
+        }, 2000);
       } else {
         console.error("❌ Failed to save data");
       }
@@ -84,10 +87,25 @@ export default function DForm({ onClose }: DFormProps) {
       console.error("❌ Error submitting data:", error);
     }
   };
-    
+  
+
+  // Debug modal state changes
+  useEffect(() => {
+    console.log("Modal state changed:", showModal);
+  }, [showModal]);
 
   return (
     <div className="space-y-6">
+      {/* Success Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h2 className="text-lg font-semibold text-green-600">Driver Added Successfully!</h2>
+            <p className="text-gray-700">The driver has been saved successfully.</p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-4 gap-6 items-center">
         <div className="flex flex-col items-center col-span-1">
           <div className="w-32 h-32 rounded-full border border-gray-300 overflow-hidden">
@@ -124,15 +142,16 @@ export default function DForm({ onClose }: DFormProps) {
           <div className="grid grid-cols-12 gap-x-6">
             <div className="col-span-2">
               <Label htmlFor="age">Age</Label>
-              <Input type="number" id="age" value={formData.age} onChange={handleChange} />
+              <Input type="integer" id="age" value={formData.age} onChange={handleChange} />
             </div>
+
             <div className="col-span-5">
               <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input type="number" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
+              <Input type="text" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
             </div>
             <div className="col-span-5">
               <Label htmlFor="email">Email</Label>
-              <Input type="text" id="email" value={formData.email} onChange={handleChange} />
+              <Input type="text" id="email" value={formData.email} onChange={handleChange} placeholder="info@gmail.com" />
             </div>
           </div>
 
@@ -163,14 +182,14 @@ export default function DForm({ onClose }: DFormProps) {
         <button
           type="button"
           onClick={onClose}
-          className="flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
+          className="flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Close
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          className="btn btn-success btn-update-event flex justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"
         >
           Add
         </button>

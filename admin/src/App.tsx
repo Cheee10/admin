@@ -13,6 +13,7 @@ import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
+import Ptable from "./pages/Tables/Customers";
 import RDriver from "./pages/Forms/RDriver";
 import RDi from "./pages/Forms/RDi";
 import Blank from "./pages/Blank";
@@ -40,7 +41,9 @@ export default function App() {
             <Route path="/RDi" element={<RDi />} />
 
             {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+            <Route path="/basic-table" element={<BasicTables />} />
+            <Route path="/L-Passenger" element={<Ptable />} />
+            
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

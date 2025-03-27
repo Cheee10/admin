@@ -39,14 +39,17 @@ const navItems: NavItem[] = [
     name: "Forms",
     icon: <ListIcon />,
     subItems: [
-      { name: "Register A Driver", path: "/RDriver", pro: false },
+      { name: "Sample", path: "/RDriver", pro: false },
       { name: "Register A Driver", path: "/RDi", pro: false }
     ]
   },
   {
-    name: "Tables",
+    name: "List",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    subItems: [
+      { name: "Ctable", path: "/basic-table", pro: false },
+      { name: "Passengers", path: "/L-Passenger", pro: false }
+    ]
   },
   {
     name: "Pages",
