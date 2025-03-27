@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import Label from "../Label";
-import Input from "../input/InputField";
-import FileInput from "../input/FileInput";
+import Label from "../form/Label";
+import Input from "../form/input/InputField";
+import FileInput from "../form/input/FileInput";
 import axios from "axios";
+import Alert from "../ui/alert/Alert";
 
 interface DFormProps {
   onClose: () => void;
@@ -42,7 +43,6 @@ export default function DForm({ onClose }: DFormProps) {
   const handleSubmit = async () => {
     const payload = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      // Convert active to a number
       payload.append(key, key === "active" ? Number(value).toString() : value);
     });
   
@@ -55,10 +55,11 @@ export default function DForm({ onClose }: DFormProps) {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
-      if (response.status === 200) {
+      if (response.status === 201) { // ✅ Changed from 200 to 201
         console.log("✅ Data saved successfully!");
         setShowModal(true);
-        
+  
+        // ✅ Reset form
         setFormData({
           firstName: "",
           middleName: "",
@@ -70,7 +71,7 @@ export default function DForm({ onClose }: DFormProps) {
           plateNumber: "",
           color: "",
           motorcycleModel: "",
-          active: "0", // Ensure reset
+          active: "0",
         });
   
         setImage(null);
@@ -88,6 +89,7 @@ export default function DForm({ onClose }: DFormProps) {
     }
   };
   
+  
 
   // Debug modal state changes
   useEffect(() => {
@@ -98,12 +100,11 @@ export default function DForm({ onClose }: DFormProps) {
     <div className="space-y-6">
       {/* Success Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h2 className="text-lg font-semibold text-green-600">Driver Added Successfully!</h2>
-            <p className="text-gray-700">The driver has been saved successfully.</p>
-          </div>
-        </div>
+        <Alert
+        variant="success"
+        title="Driver Added Successfully!"
+        message="The driver has been saved successfully."
+      />
       )}
 
       <div className="grid grid-cols-4 gap-6 items-center">
@@ -142,16 +143,39 @@ export default function DForm({ onClose }: DFormProps) {
           <div className="grid grid-cols-12 gap-x-6">
             <div className="col-span-2">
               <Label htmlFor="age">Age</Label>
-              <Input type="integer" id="age" value={formData.age} onChange={handleChange} />
+              <Input
+                type="integer"
+                id="age"
+                value={formData.age}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d{0,2}$/.test(value)) {
+                    handleChange(e);
+                  }
+                }}
+              />
             </div>
 
             <div className="col-span-5">
               <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input type="text" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
+              <Input type="integer" 
+              id="phoneNumber" 
+              value={formData.phoneNumber} 
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d{0,13}$/.test(value)) {
+                  handleChange(e);
+                }
+              }}
+              />
             </div>
             <div className="col-span-5">
               <Label htmlFor="email">Email</Label>
-              <Input type="text" id="email" value={formData.email} onChange={handleChange} placeholder="info@gmail.com" />
+              <Input type="text" 
+              id="email" value={formData.email} 
+              onChange={handleChange} 
+              placeholder="info@gmail.com"
+              />
             </div>
           </div>
 
@@ -182,14 +206,14 @@ export default function DForm({ onClose }: DFormProps) {
         <button
           type="button"
           onClick={onClose}
-          className="flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:text-white"
         >
           Close
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"
+          className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-blue-600 rounded-lg hover:bg-blue-600 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800"
         >
           Add
         </button>
