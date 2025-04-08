@@ -18,7 +18,7 @@ export default function DForm({ onClose }: DFormProps) {
     firstName: "",
     middleName: "",
     lastName: "",
-    age: "",
+    birthDate: "",
     phoneNumber: "",
     email: "",
     address: "",
@@ -51,20 +51,20 @@ export default function DForm({ onClose }: DFormProps) {
     }
   
     try {
-      const response = await axios.post("http://192.168.1.59:5000/api/driver", payload, {
+      const response = await axios.post("http://192.168.1.45:5000/api/driver", payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
-      if (response.status === 201) { // ✅ Changed from 200 to 201
+      if (response.status === 201) {
         console.log("✅ Data saved successfully!");
         setShowModal(true);
   
-        // ✅ Reset form
+        // Reset form
         setFormData({
           firstName: "",
           middleName: "",
           lastName: "",
-          age: "",
+          birthDate: "",
           phoneNumber: "",
           email: "",
           address: "",
@@ -76,6 +76,7 @@ export default function DForm({ onClose }: DFormProps) {
   
         setImage(null);
         setPreview(null);
+
   
         setTimeout(() => {
           setShowModal(false);
@@ -141,22 +142,18 @@ export default function DForm({ onClose }: DFormProps) {
           </div>
 
           <div className="grid grid-cols-12 gap-x-6">
-            <div className="col-span-2">
-              <Label htmlFor="age">Age</Label>
+            <div className="col-span-4">
+              <Label htmlFor="birthDate">Birth Date</Label>
               <Input
-                type="integer"
-                id="age"
-                value={formData.age}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d{0,2}$/.test(value)) {
-                    handleChange(e);
-                  }
-                }}
+                type="date"
+                id="birthDate"
+                value={formData.birthDate}
+                onChange={handleChange}
+                max={new Date().toISOString().split('T')[0]}
               />
             </div>
 
-            <div className="col-span-5">
+            <div className="col-span-4">
               <Label htmlFor="phoneNumber">Phone Number</Label>
               <Input type="integer" 
               id="phoneNumber" 
@@ -169,7 +166,7 @@ export default function DForm({ onClose }: DFormProps) {
               }}
               />
             </div>
-            <div className="col-span-5">
+            <div className="col-span-4">
               <Label htmlFor="email">Email</Label>
               <Input type="text" 
               id="email" value={formData.email} 

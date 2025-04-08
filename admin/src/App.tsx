@@ -13,9 +13,11 @@ import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
-import Ptable from "./pages/Tables/Customers";
+import Ptable from "./pages/Tables/Passengers";
 import RDriver from "./pages/Forms/RDriver";
 import RDi from "./pages/Forms/RDi";
+import Cu from "./pages/Website/ContactUs";
+import Nr from "./pages/Website/NewsRoom";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -43,6 +45,10 @@ export default function App() {
             {/* Tables */}
             <Route path="/basic-table" element={<BasicTables />} />
             <Route path="/L-Passenger" element={<Ptable />} />
+
+            {/* Contact Us */}
+            <Route path="/ContactUs" element={<Cu />} />
+            <Route path="/Newsroom" element={<Nr />} />
             
 
             {/* Ui Elements */}

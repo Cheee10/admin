@@ -9,7 +9,7 @@ interface Driver {
   lastName: string;
   address: string;
   plateNumber: string;
-  age: number;
+  birthDate: string;
   status: string;
   image: string;
   phoneNumber?: string;
@@ -38,7 +38,7 @@ const DriverModal: React.FC<DriverModalProps> = ({ isOpen, onClose, driver }) =>
           <div className="flex flex-col items-center md:col-span-1 p-2">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-gray-300 overflow-hidden">
               <img
-                src={driver.image ? `http://192.168.1.59:5000${driver.image}` : "/images/default-avatar.jpg"}
+                src={driver.image ? `http://192.168.1.45:5000${driver.image}` : "http://192.168.1.45:5000/uploads/default-image.png"}
                 alt={`${driver.firstName} ${driver.lastName}`}
                 className="w-full h-full object-cover"
               />
@@ -74,8 +74,14 @@ const DriverModal: React.FC<DriverModalProps> = ({ isOpen, onClose, driver }) =>
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-2">Contact Information</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Age</p>
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">{driver.age}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Birth Date</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {driver.birthDate ? new Date(driver.birthDate).toLocaleDateString('en-US', {
+                      month: '2-digit',
+                      day: '2-digit',
+                      year: 'numeric'
+                    }) : ''}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Phone Number</p>

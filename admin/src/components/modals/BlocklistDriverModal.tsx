@@ -21,7 +21,7 @@ const BlocklistConfirmModal: React.FC<BlocklistConfirmModalProps> = ({
   const handleBlocklist = async () => {
     try {
       // Update driver's active status to "3" (blocklisted)
-      await axios.patch(`http://192.168.1.59:5000/api/driver/${driverId}/active`, {
+      await axios.patch(`http://192.168.1.45:5000/api/driver/${driverId}/active`, {
         active: 3
       });
       

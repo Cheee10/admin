@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import Badge from "../ui/badge/Badge";
+
 import { MoreDotIcon } from "../../icons";
 import DriverModal from "../modals/DriverModal";
-import BlocklistConfirmModal from "../modals/BlocklistConfirmModal";
-import ArchiveConfirmModal from "../modals/ArchiveConfirmModal";
+import BlocklistConfirmModal from "../modals/BlocklistDriverModal";
+import ArchiveConfirmModal from "../modals/ArchiveDriverModal";
 
 import {
   Table,
@@ -47,7 +47,7 @@ export default function ADriver({ searchQuery }: Props) {
 
   const fetchDrivers = async () => {
     try {
-      const response = await axios.get("http://192.168.1.59:5000/api/driver");
+      const response = await axios.get("http://192.168.1.45:5000/api/driver");
       // Filter drivers to only show those with active=0
       const activeDrivers = response.data.filter(driver => driver.active === 0);
       setDrivers(activeDrivers);
@@ -120,11 +120,9 @@ export default function ADriver({ searchQuery }: Props) {
                   Plate Number
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Age
+                  Motorcycle Model
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Status
-                </TableCell>
+
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Action
                 </TableCell>
@@ -142,12 +140,12 @@ export default function ADriver({ searchQuery }: Props) {
                       <img
                         width={40}
                         height={40}
-                        src={driver.image ? `http://192.168.1.59:5000${driver.image}` : "http://192.168.1.59:5000/uploads/default-image.png"}
+                        src={driver.image ? `http://192.168.1.45:5000${driver.image}` : "http://192.168.1.45:5000/uploads/default-image.png"}
                       />
                     </div>
                     <div>
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {`${driver.lastName || ''}, ${driver.firstName || ''} ${driver.middleName || ''}`.trim()}
+                        {`${driver.lastName || ''}, ${driver.firstName || ''}`.trim()}
                       </span>
                       <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
                         {driver.plateNumber}
@@ -159,10 +157,7 @@ export default function ADriver({ searchQuery }: Props) {
                   {driver.plateNumber}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {driver.age}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Badge variant="light" color="primary">{driver.status}</Badge>
+                  {driver.motorcycleModel}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   <div className="relative inline-block">

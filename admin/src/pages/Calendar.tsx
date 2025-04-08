@@ -3,243 +3,276 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
-import { Modal } from "../components/ui/modal";
+import { EventInput, EventClickArg } from "@fullcalendar/core";
+import MDriver from "../components/common/Modal";
 import { useModal } from "../hooks/useModal";
-import PageMeta from "../components/common/PageMeta";
+import axios from "axios";
+
+interface Booking {
+  _id: string;
+  title: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  date: string;
+  time: string;
+  active: number;
+}
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
-    calendar: string;
+    booking: Booking;
   };
 }
 
 const Calendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [groupedEvents, setGroupedEvents] = useState<{ [key: string]: CalendarEvent[] }>({});
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
+  
 
-  const calendarsEvents = {
-    Danger: "danger",
-    Success: "success",
-    Primary: "primary",
-    Warning: "warning",
+  const parseTime = (timeStr: string) => {
+    // Parse time in format "2:00 PM"
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Convert to 24-hour format
+    let hours24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hours24 = hours + 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours24 = 0;
+    }
+    
+    return { hours: hours24, minutes };
+  };
+
+  const parseDate = (dateStr: string, timeStr: string) => {
+    // Parse the date string (e.g., "Wed Apr 02 2025")
+    const date = new Date(dateStr);
+    
+    // Parse the time string (e.g., "2:00 PM")
+    const { hours, minutes } = parseTime(timeStr);
+    
+    // Set the time on the date
+    date.setHours(hours, minutes);
+    
+    return date;
+  };
+
+  const groupEventsByDate = (events: CalendarEvent[]) => {
+    const grouped: { [key: string]: CalendarEvent[] } = {};
+    
+    events.forEach(event => {
+      const date = new Date(event.start as string).toISOString().split('T')[0];
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(event);
+    });
+    
+    return grouped;
+  };
+
+  const processEvents = (events: CalendarEvent[]) => {
+    const grouped = groupEventsByDate(events);
+    setGroupedEvents(grouped);
+    const processedEvents: CalendarEvent[] = [];
+    
+    Object.entries(grouped).forEach(([date, dayEvents]) => {
+      // Sort events by time
+      dayEvents.sort((a, b) => {
+        const timeA = a.extendedProps.booking.time;
+        const timeB = b.extendedProps.booking.time;
+        return timeA.localeCompare(timeB);
+      });
+      
+      // Add first two events
+      processedEvents.push(...dayEvents.slice(0, 2));
+      
+      // If there are more events, add a "more events" indicator
+      if (dayEvents.length > 2) {
+        processedEvents.push({
+          id: `more-${date}`,
+          title: `+${dayEvents.length - 2} more`,
+          start: date,
+          extendedProps: {
+            booking: {
+              _id: `more-${date}`,
+              title: `+${dayEvents.length - 2} more appointments`,
+              firstName: '',
+              lastName: '',
+              phone: '',
+              email: '',
+              date: date,
+              time: '',
+              active: 1
+            }
+          },
+          className: 'more-events-indicator',
+          display: 'background',
+          interactive: false, // <-- Add this
+  editable: false,
+        });
+      }
+    });
+    
+    return processedEvents;
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const response = await axios.get("http://192.168.1.45:5000/api/booking");
+      const bookings = response.data;
+      
+      // Transform bookings into calendar events
+      const calendarEvents = bookings.map((booking: Booking) => {
+        const eventDate = parseDate(booking.date, booking.time);
+        
+        return {
+          id: booking._id,
+          title: booking.title.charAt(0).toUpperCase() + booking.title.slice(1),
+          start: eventDate.toISOString(),
+          extendedProps: {
+            booking: booking
+          }
+        };
+      });
+      
+      // Process events to limit to 2 per day
+      const processedEvents = processEvents(calendarEvents);
+      setEvents(processedEvents);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // Initialize with some events
-    setEvents([
-      {
-        id: "1",
-        title: "Event Conf.",
-        start: new Date().toISOString().split("T")[0],
-        extendedProps: { calendar: "Danger" },
-      },
-      {
-        id: "2",
-        title: "Meeting",
-        start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Success" },
-      },
-      {
-        id: "3",
-        title: "Workshop",
-        start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-        end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Primary" },
-      },
-    ]);
+    fetchBookings();
   }, []);
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
-    openModal();
-  };
-
   const handleEventClick = (clickInfo: EventClickArg) => {
+    if (clickInfo.event.classNames.includes('more-events-indicator')) {
+      return; // Ignore clicks on the more events indicator
+    }
+    
     const event = clickInfo.event;
     setSelectedEvent(event as unknown as CalendarEvent);
-    setEventTitle(event.title);
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps.calendar);
     openModal();
   };
 
-  const handleAddOrUpdateEvent = () => {
-    if (selectedEvent) {
-      // Update existing event
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event.id === selectedEvent.id
-            ? {
-                ...event,
-                title: eventTitle,
-                start: eventStartDate,
-                end: eventEndDate,
-                extendedProps: { calendar: eventLevel },
-              }
-            : event
-        )
-      );
-    } else {
-      // Add new event
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: eventTitle,
-        start: eventStartDate,
-        end: eventEndDate,
-        allDay: true,
-        extendedProps: { calendar: eventLevel },
-      };
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
-    }
-    closeModal();
-    resetModalFields();
-  };
-
-  const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("");
-    setSelectedEvent(null);
+  const formatDate = (dateStr: string, timeStr: string) => {
+    const date = parseDate(dateStr, timeStr);
+    return date.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   return (
     <>
-      <PageMeta
-        title="React.js Calendar Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js Calendar Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      />
-      <div className="rounded-2xl border  border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="custom-calendar">
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             headerToolbar={{
-              left: "prev,next addEventButton",
+              left: "prev,next",
               center: "title",
               right: "dayGridMonth,timeGridWeek,timeGridDay",
             }}
             events={events}
-            selectable={true}
-            select={handleDateSelect}
             eventClick={handleEventClick}
             eventContent={renderEventContent}
-            customButtons={{
-              addEventButton: {
-                text: "Add Event +",
-                click: openModal,
-              },
+            loading={(isLoading) => setLoading(isLoading)}
+            eventClassNames={(arg) => {
+              if (arg.event.classNames.includes('more-events-indicator')) {
+                return 'more-events-indicator';
+              }
+              return '';
+            }}
+            eventDisplay="block"
+            eventTimeFormat={{
+              hour: 'numeric',
+              minute: '2-digit',
+              meridiem: 'short'
+            }}
+            eventMinHeight={60}
+            eventMinWidth={150}
+            slotMinTime="00:00:00"
+            slotMaxTime="24:00:00"
+            allDaySlot={false}
+            expandRows={true}
+            height="auto"
+            contentHeight="auto"
+            dayMaxEvents={true}
+            eventOrder="start,title"
+            eventConstraint={{
+              startTime: '00:00',
+              endTime: '24:00',
+              overlap: false
             }}
           />
         </div>
-        <Modal
-          isOpen={isOpen}
-          onClose={closeModal}
-          className="max-w-[700px] p-6 lg:p-10"
-        >
+        <MDriver title="Booking Details" isOpen={isOpen}>
           <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
-            <div>
-              <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-                {selectedEvent ? "Edit Event" : "Add Event"}
-              </h5>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Plan your next big moment: schedule or edit an event to stay on
-                track
-              </p>
-            </div>
             <div className="mt-8">
-              <div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Event Title
-                  </label>
-                  <input
-                    id="event-title"
-                    type="text"
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
+              {selectedEvent && selectedEvent.extendedProps.booking && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                      Title
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white capitalize">
+                      {selectedEvent.extendedProps.booking.title}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                      Name
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {`${selectedEvent.extendedProps.booking.firstName} ${selectedEvent.extendedProps.booking.middleName || ''} ${selectedEvent.extendedProps.booking.lastName}`}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                      Contact Information
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedEvent.extendedProps.booking.phone}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedEvent.extendedProps.booking.email}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                      Date and Time
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {formatDate(
+                        selectedEvent.extendedProps.booking.date,
+                        selectedEvent.extendedProps.booking.time
+                      )}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-6">
-                <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Event Color
-                </label>
-                <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                  {Object.entries(calendarsEvents).map(([key, value]) => (
-                    <div key={key} className="n-chk">
-                      <div
-                        className={`form-check form-check-${value} form-check-inline`}
-                      >
-                        <label
-                          className="flex items-center text-sm text-gray-700 form-check-label dark:text-gray-400"
-                          htmlFor={`modal${key}`}
-                        >
-                          <span className="relative">
-                            <input
-                              className="sr-only form-check-input"
-                              type="radio"
-                              name="event-level"
-                              value={key}
-                              id={`modal${key}`}
-                              checked={eventLevel === key}
-                              onChange={() => setEventLevel(key)}
-                            />
-                            <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
-                              <span className="w-2 h-2 bg-white rounded-full dark:bg-transparent"></span>
-                            </span>
-                          </span>
-                          {key}
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter Start Date
-                </label>
-                <div className="relative">
-                  <input
-                    id="event-start-date"
-                    type="date"
-                    value={eventStartDate}
-                    onChange={(e) => setEventStartDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter End Date
-                </label>
-                <div className="relative">
-                  <input
-                    id="event-end-date"
-                    type="date"
-                    value={eventEndDate}
-                    onChange={(e) => setEventEndDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
-              </div>
+              )}
             </div>
             <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
               <button
@@ -249,30 +282,45 @@ const Calendar: React.FC = () => {
               >
                 Close
               </button>
-              <button
-                onClick={handleAddOrUpdateEvent}
-                type="button"
-                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
-              >
-                {selectedEvent ? "Update Changes" : "Add Event"}
-              </button>
             </div>
           </div>
-        </Modal>
+          </MDriver>
+          
       </div>
     </>
   );
 };
 
 const renderEventContent = (eventInfo: any) => {
-  const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`;
+  const booking = eventInfo.event.extendedProps.booking;
+  
+  if (eventInfo.event.classNames.includes('more-events-indicator')) {
+    return (
+      <div className="event-fc-color flex items-center justify-center fc-event-main ">
+        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+      </div>
+    );
+  }
+
+  const time = booking.time;
+  const name = `${booking.firstName} ${booking.lastName}`;
+
   return (
-    <div
-      className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded`}
-    >
-      <div className="fc-daygrid-event-dot"></div>
-      <div className="fc-event-time">{eventInfo.timeText}</div>
-      <div className="fc-event-title">{eventInfo.event.title}</div>
+    <div className="event-fc-color flex flex-col fc-event-main p-2 rounded-lg bg-white shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex items-center justify-between">
+        <div className="fc-event-time text-xs font-medium text-gray-500 dark:text-gray-400">
+          {time}
+        </div>
+        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+      </div>
+      <div className="mt-1">
+        <div className="fc-event-title text-sm font-semibold text-gray-900 dark:text-white">
+          {eventInfo.event.title}
+        </div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {name}
+        </div>
+      </div>
     </div>
   );
 };
