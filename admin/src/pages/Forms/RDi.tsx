@@ -2,7 +2,7 @@ import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
-import ADriver from "../../components/tables/Driver";
+import ADriver from "../../components/tables/Driver_T";
 import MDriver from "../../components/common/Modal";
 import DForm from "../../components/modals/FDriver";
 

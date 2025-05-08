@@ -38,7 +38,7 @@ const DriverModal: React.FC<DriverModalProps> = ({ isOpen, onClose, driver }) =>
           <div className="flex flex-col items-center md:col-span-1 p-2">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-gray-300 overflow-hidden">
               <img
-                src={driver.image ? `http://192.168.1.45:5000${driver.image}` : "http://192.168.1.45:5000/uploads/default-image.png"}
+                src={driver.image ? `http://192.168.1.9:5000${driver.image}` : "http://192.168.1.9:5000/uploads/default-image.png"}
                 alt={`${driver.firstName} ${driver.lastName}`}
                 className="w-full h-full object-cover"
               />

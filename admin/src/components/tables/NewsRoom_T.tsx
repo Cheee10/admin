@@ -22,7 +22,7 @@ interface Passenger {
   active: number;
 }
 
-export default function List() {
+export default function N_List() {
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function List() {
 
   const fetchPassengers = async () => {
     try {
-      const response = await axios.get("http://192.168.1.45:5000/api/passenger");
+      const response = await axios.get("http://192.168.1.9:5000/api/passenger");
       const activePassengers = response.data.filter((passenger: Passenger) => passenger.active === 0);
       setPassengers(activePassengers);
       setLoading(false);
@@ -114,7 +114,7 @@ export default function List() {
                           <img
                             width={40}
                             height={40}
-                            src={passenger.image ? `http://192.168.1.45:5000${passenger.image}` : "http://192.168.1.45:5000/uploads/default-image.png"}
+                            src={passenger.image ? `http://192.168.1.9:5000${passenger.image}` : "http://192.168.1.9:5000/uploads/default-image.png"}
                             alt={`${passenger.firstName} ${passenger.lastName}`}
                           />
                         </div>

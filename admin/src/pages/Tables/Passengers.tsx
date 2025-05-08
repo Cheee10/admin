@@ -1,6 +1,6 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
-import List from "../../components/tables/Passenger";
+import List from "../../components/tables/Passenger_T";
 
 export default function Ptable() {
   return (

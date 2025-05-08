@@ -20,7 +20,7 @@ const ArchiveConfirmModal: React.FC<ArchiveConfirmModalProps> = ({
   const handleArchive = async () => {
     try {
       // Update driver's active status to "2" (archived)
-      await axios.patch(`http://192.168.1.45:5000/api/driver/${driverId}/active`, {
+      await axios.patch(`http://192.168.1.9:5000/api/driver/${driverId}/active`, {
         active: 2
       });
       
