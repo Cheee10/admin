@@ -37,14 +37,14 @@ export default function ContactUsInputGroup({ onClose }: ContactUsInputGroupProp
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://192.168.1.9:5000/api/contact");
+      const response = await fetch("http://192.168.1.7:5000/api/contact");
       if (!response.ok) throw new Error("Failed to fetch contacts");
 
       const data = await response.json();
       if (data.length > 0) {
         setFormData(data[0]);
         if (data[0].image) {
-          const imageUrl = `http://192.168.1.9:5000/${data[0].image}`;
+          const imageUrl = `http://192.168.1.7:5000/${data[0].image}`;
           setPreview(imageUrl);
           setOldPreview(imageUrl);
         }
@@ -105,7 +105,7 @@ export default function ContactUsInputGroup({ onClose }: ContactUsInputGroupProp
         submitData.append('image', currentImage);
       }
 
-      const response = await fetch(`http://192.168.1.9:5000/api/contact/${formData._id}`, {
+      const response = await fetch(`http://192.168.1.7:5000/api/contact/${formData._id}`, {
         method: 'POST',
         body: submitData,
       });

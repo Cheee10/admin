@@ -21,7 +21,7 @@ const BlocklistPassengerModal: React.FC<BlocklistPassengerModalProps> = ({
   const handleBlocklist = async () => {
     try {
       // Update passenger's active status to "3" (blocklisted)
-      await axios.patch(`http://192.168.1.9:5000/api/passenger/${passengerId}/active`, {
+      await axios.patch(`http://192.168.1.7:5000/api/passenger/${passengerId}/active`, {
         active: 3
       });
       

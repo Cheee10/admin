@@ -128,7 +128,7 @@ const Calendar: React.FC = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await axios.get("http://192.168.1.9:5000/api/booking");
+      const response = await axios.get("http://192.168.1.7:5000/api/booking");
       const bookings = response.data;
       
       // Transform bookings into calendar events

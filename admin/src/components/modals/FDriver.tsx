@@ -51,7 +51,7 @@ export default function DForm({ onClose }: DFormProps) {
     }
   
     try {
-      const response = await axios.post("http://192.168.1.9:5000/api/driver", payload, {
+      const response = await axios.post("http://192.168.1.7:5000/api/driver", payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   

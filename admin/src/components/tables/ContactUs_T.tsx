@@ -29,7 +29,7 @@ export default function CUtable() {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://192.168.1.9:5000/api/contact');
+      const response = await fetch('http://192.168.1.24:5000/api/contact');
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
       }
@@ -69,7 +69,7 @@ export default function CUtable() {
           <Label>Current Image</Label>
           <div className="mt-2 relative w-full h-[350px] rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
             <img 
-              src={formData.image ? `http://192.168.1.9:5000/${formData.image}` : ''}
+              src={formData.image ? `http://192.168.1.24:5000/${formData.image}` : ''}
               alt="Contact" 
               className="w-full h-full object-cover"
               onError={(e) => {

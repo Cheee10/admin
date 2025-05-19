@@ -47,7 +47,7 @@ export default function ADriver({ searchQuery }: Props) {
 
   const fetchDrivers = async () => {
     try {
-      const response = await axios.get("http://192.168.1.9:5000/api/driver");
+      const response = await axios.get("http://192.168.1.24:5000/api/driver");
       // Filter drivers to only show those with active=0
       const activeDrivers = response.data.filter(driver => driver.active === 0);
       setDrivers(activeDrivers);
@@ -140,7 +140,7 @@ export default function ADriver({ searchQuery }: Props) {
                       <img
                         width={40}
                         height={40}
-                        src={driver.image ? `http://192.168.1.9:5000${driver.image}` : "http://192.168.1.9:5000/uploads/default-image.png"}
+                        src={driver.image ? `http://192.168.1.24:5000${driver.image}` : "http://192.168.1.24:5000/uploads/default-image.png"}
                       />
                     </div>
                     <div>

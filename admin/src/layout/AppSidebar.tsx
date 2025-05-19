@@ -52,6 +52,14 @@ const navItems: NavItem[] = [
     ]
   },
   {
+    name: "Transactions",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "Booking Transactions", path: "/L-Booking-Transaction", pro: false },
+      { name: "Credit Transactions", path: "/L-Credit-Transaction", pro: false },
+    ]
+  },
+  {
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
@@ -70,6 +78,11 @@ const navItems: NavItem[] = [
 ];
 
 const othersItems: NavItem[] = [
+  {
+    icon: <PieChartIcon />,
+    name: "Users",
+    path: "/users",
+  },
   {
     icon: <PieChartIcon />,
     name: "Charts",
@@ -95,7 +108,7 @@ const othersItems: NavItem[] = [
     name: "Authentication",
     subItems: [
       { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+
     ],
   },
 ];
